@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+    com.github.lburgazzoli.camel.support.LifecycleStrategyAutoConfiguration,\
+    com.github.lburgazzoli.camel.support.LogComponentAutoConfiguration
