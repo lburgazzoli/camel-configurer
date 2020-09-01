@@ -16,11 +16,18 @@
  */
 package com.github.lburgazzoli.camel;
 
+import java.util.Comparator;
+
+import org.apache.camel.Component;
+import org.apache.camel.Ordered;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.spi.ExchangeFormatter;
+import org.apache.camel.support.LifecycleStrategySupport;
 import org.apache.camel.support.processor.DefaultExchangeFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 
@@ -47,6 +54,21 @@ public class Application {
             public void configure() throws Exception {
                 from("timer:tick")
                     .to("log:info");
+            }
+        };
+    }
+
+    @Bean
+    public LifecycleStrategySupport componentCustomizerStrategy(
+        @Autowired ApplicationContext context) {
+
+        return new LifecycleStrategySupport() {
+            @Override
+            public void onComponentAdd(String name, Component component) {
+                context.getBeansOfType(ComponentCustomizer.class).values().stream()
+                    .sorted(Comparator.comparingInt(Ordered::getOrder))
+                    .filter(customizer -> customizer.isEnabled(component))
+                    .forEach(customizer -> customizer.configure(component));
             }
         };
     }
